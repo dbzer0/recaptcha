@@ -11,10 +11,24 @@ const recaptchaServerName = "https://www.google.com/recaptcha/api/siteverify"
 
 type Recaptcha struct {
 	privateKey string
+	serverName string
 }
 
-func New(privateKey string) *Recaptcha {
-	return &Recaptcha{privateKey: privateKey}
+func New(privateKey string, opts ...Option) *Recaptcha {
+	rc := &Recaptcha{privateKey: privateKey}
+
+	for _, enhance := range opts {
+		enhance(rc)
+	}
+	rc.EnsureDefaults()
+
+	return rc
+}
+
+func (rc *Recaptcha) EnsureDefaults() {
+	if rc.serverName == "" {
+		rc.serverName = recaptchaServerName
+	}
 }
 
 type recaptchaResponse struct {
@@ -27,7 +41,7 @@ type recaptchaResponse struct {
 }
 
 func (rc *Recaptcha) check(remoteIP, response string) (*recaptchaResponse, error) {
-	resp, err := http.PostForm(recaptchaServerName, url.Values{
+	resp, err := http.PostForm(rc.serverName, url.Values{
 		"secret":   {rc.privateKey},
 		"remoteip": {remoteIP},
 		"response": {response}},
