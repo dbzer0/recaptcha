@@ -53,7 +53,7 @@ func (rc *Recaptcha) check(remoteIP, response string) (*recaptchaResponse, error
 
 	var recapResp *recaptchaResponse
 	if err := json.NewDecoder(resp.Body).Decode(&recapResp); err != nil {
-		return recapResp, nil
+		return recapResp, err
 	}
 
 	return recapResp, nil
