@@ -56,7 +56,28 @@ func (rc *Recaptcha) check(remoteIP, response string) (*recaptchaResponse, error
 		return recapResp, err
 	}
 
-	return recapResp, nil
+	return recapResp, rc.ErrorWrap(recapResp.ErrorCodes)
+}
+
+func (rc *Recaptcha) ErrorWrap(errorCodes []string) error {
+	for _, errCode := range errorCodes {
+		switch errCode {
+		case "missing-input-secret":
+			return ErrMissingInputSecret
+		case "invalid-input-secret":
+			return ErrMissingInputSecret
+		case "invalid-input-response":
+			return ErrInvalidInputResponse
+		case "bad-request":
+			return ErrBadRequest
+		case "timeout-or-duplicate":
+			return ErrTimeoutOrDuplicate
+		default:
+			return ErrUnknown
+		}
+	}
+
+	return nil
 }
 
 func (rc *Recaptcha) Confirm(remoteIP, response string) (bool, error) {
@@ -67,3 +88,4 @@ func (rc *Recaptcha) Confirm(remoteIP, response string) (bool, error) {
 
 	return resp.Success, nil
 }
+
